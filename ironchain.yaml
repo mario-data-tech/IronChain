@@ -1,0 +1,48 @@
+# ironchain.yaml
+# Policy-as-Code para agentes de desarrollo IA (Claude Code, Cursor, Copilot, etc.)
+# Este archivo es la ÚNICA fuente de verdad sobre lo que un agente puede y no puede tocar.
+
+version: 1
+
+guard:
+  # Paths que un agente NUNCA debe modificar sin aprobación humana explícita.
+  # Soporta glob patterns (fnmatch style).
+  protected_paths:
+    - "infra/**"
+    - ".github/workflows/**"
+    - "migrations/**"
+    - "prisma/schema.prisma"
+    - "iac/**"
+    - "Dockerfile"
+    - "docker-compose*.yml"
+
+  # Archivos que jamás deberían aparecer en un diff, sin importar el path.
+  # Pensado para secretos, credenciales y material sensible.
+  secret_files:
+    - ".env"
+    - ".env.*"
+    - "**/*.pem"
+    - "**/*.key"
+    - "**/id_rsa*"
+    - "**/secrets/**"
+    - "**/*.credentials.json"
+
+  # Variable de entorno que un humano puede setear para forzar un bypass
+  # explícito y auditable (nunca pensada para que la use el propio agente).
+  allow_override_env: "IRONCHAIN_ALLOW_OVERRIDE"
+
+schema:
+  # (WIP) Contratos a vigilar: Zod, Prisma, tipos exportados, OpenAPI, etc.
+  watch:
+    - "prisma/schema.prisma"
+    - "src/**/*.schema.ts"
+    - "openapi.yaml"
+
+verify:
+  # (WIP) Anti-Slopsquat: listas de paquetes permitidos / umbrales de confianza.
+  registries:
+    - "npm"
+    - "pypi"
+  min_package_age_days: 30
+  min_weekly_downloads: 1000
+  block_on_typosquat_risk: true
